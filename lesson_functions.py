@@ -7,12 +7,6 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage.feature import hog
-# NOTE: the next import is only valid for scikit-learn version >= 0.18
-# for scikit-learn <= 0.17 use:
-#from sklearn.cross_validation import train_test_split
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
 
 import cv2
 
