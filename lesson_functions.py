@@ -3,7 +3,6 @@
 import glob
 import time
 
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -93,7 +92,8 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
     # Iterate through the list of images
     for imagefile in imgs:
 
-        image = mpimg.imread(imagefile)
+        image = cv2.imread(imagefile)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         file_features = single_img_features(image, color_space, spatial_size, hist_bins, orient, pix_per_cell,
                                             cell_per_block, hog_channel, spatial_feat, hist_feat, hog_feat)
         features.append(file_features)

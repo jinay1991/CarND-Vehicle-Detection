@@ -5,7 +5,6 @@ import pickle
 import time
 import unittest
 
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage.measurements import label
@@ -103,7 +102,8 @@ class TestSearchClassify(unittest.TestCase):
         prediction = svc.predict(features)
         print("prediction: %s" % (prediction))
 
-        image = mpimg.imread('test_images/test1.jpg')
+        image = cv2.imread('test_images/test1.jpg')
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         draw_image = np.copy(image)
         print("Predict cars for %s" % ('test_images/test1.jpg'))
         # Uncomment the following line if you extracted training
