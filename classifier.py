@@ -28,7 +28,8 @@ def features(color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_pe
 
     print("car images: %s, notcar images: %s" % (len(cars), len(notcars)))
 
-    print('Using:', orient, 'orientations', pix_per_cell, 'pixels per cell and', cell_per_block, 'cells per block')
+    print('Using:', orient, 'orientations', pix_per_cell, 'pixels per cell', cell_per_block, 'cells per block', color_space,
+          'color_space', spatial_size, 'spatial_size', hist_bins, 'hist_bins and', hog_channel, 'hog_channel for features extract')
 
     car_features = extract_features(cars, color_space=color_space,
                                     spatial_size=spatial_size, hist_bins=hist_bins,
@@ -51,6 +52,9 @@ def features(color_space, spatial_size, hist_bins, orient, pix_per_cell, cell_pe
     return X, y
 
 def train(X, y, save=True):
+    """
+    Train LinearSVC classifier for given feature set
+    """
     # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=rand_state)
@@ -86,5 +90,13 @@ def train(X, y, save=True):
     return svc, X_scaler
 
 def load():
+    """
+    load pretrained classifier from pickle
+
+    Returns:
+        clf (LinearSVC classifier)
+        scaler (training data scaler)
+    """
     assert os.path.exists("svc.p"), "Failed to locate 'svc.p'"
-    return pickle.load(open("svc.p", "rb"))
+    svc = pickle.load(open("svc.p", "rb"))
+    return svc['svc'], svc['X_scaler']

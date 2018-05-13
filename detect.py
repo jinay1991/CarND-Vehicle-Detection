@@ -8,16 +8,26 @@ import cv2
 from lesson_functions import (add_heat, apply_threshold, draw_boxes,
                               draw_labeled_bboxes, find_cars)
 
+# INTERESTING_WIN_PROP = [
+#     # (ystart, ystop, scale, step, color)
+#     (400, 464, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (416, 480, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+
+#     (400, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (432, 528, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+
+#     (400, 528, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (432, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+
+#     (400, 628, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (464, 690, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+# ]
 INTERESTING_WIN_PROP = [
     # (ystart, ystop, scale, step, color)
-    (400, 464, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
     (416, 480, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (400, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (432, 528, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (400, 528, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (432, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (400, 628, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (464, 690, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+    # (400, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    # (400, 528, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+
 ]
 
 
@@ -43,17 +53,21 @@ def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
 
 
-def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space, display=False):
+def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space,
+                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False):
+    """
+    Performs multi-scale find_cars for given feature configurations
+    """
     height, width = rgb_image.shape[:2]
     boxes_img = rgb_image.copy()
     boxes = []
     i = 0
     for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
 
-        _, boxes_ = find_cars(rgb_image, ystart=ystart, ystop=ystop, scale=scale, svc=clf, X_scaler=scaler,
-                              orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
-                              spatial_size=spatial_size, hist_bins=hist_bins, color_space=color_space,
-                              step=step)
+        out_img, boxes_ = find_cars(rgb_image, ystart=ystart, ystop=ystop, scale=scale, svc=clf, X_scaler=scaler,
+                                    orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
+                                    spatial_size=spatial_size, hist_bins=hist_bins, color_space=color_space,
+                                    step=step, hog_feat=hog_feat, hog_channel=hog_channel, hist_feat=hist_feat, spatial_feat=spatial_feat)
 
         boxes_img = draw_boxes(boxes_img, boxes_, color=color)
 
@@ -69,7 +83,7 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
     heat = add_heat(heat, boxes)
 
     # Apply threshold to help remove false positives
-    heat = apply_threshold(heat, 1)
+    heat = apply_threshold(heat, heat_thresh)
 
     # Visualize the heatmap when displaying
     heatmap = np.clip(heat, 0, 255)
