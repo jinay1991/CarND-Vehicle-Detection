@@ -5,9 +5,12 @@ import time
 
 import numpy as np
 
+import calib
 import cv2
 from classifier import features, load, train
 from detect import detect_cars, showImages
+from lane import detect_lanes
+from line import Line
 
 if __name__ == "__main__":
 
@@ -28,6 +31,8 @@ if __name__ == "__main__":
     parser.add_argument("--hist_feat", help="Histogram features on or off", action="store_false")
     parser.add_argument("--hog_feat", help="HOG features on or off", action="store_false")
     parser.add_argument("--heat_threshold", help="Heatmap threshold", default=1, type=int)
+    parser.add_argument("--method", help="car search method. can be 'find_cars' or 'search_windows'", default='find_cars', type=str)
+    parser.add_argument("--detect_lanes", help="detects lane lines", action="store_true")
     args = parser.parse_args()
 
     # Accomodate hog_channel multi-type
@@ -54,6 +59,14 @@ if __name__ == "__main__":
     assert os.path.exists(args.fname), "Failed to locate %s" % (args.fname)
 
     # -------------------------------------------------------------------------------------------------------------------------------------
+    # Prepare for lane line detection
+    # -------------------------------------------------------------------------------------------------------------------------------------
+    if args.detect_lanes:
+        mtx, dist = calib.load()
+        left_lane = Line()
+        right_lane = Line()
+
+    # -------------------------------------------------------------------------------------------------------------------------------------
     # Process on image/video frames
     # -------------------------------------------------------------------------------------------------------------------------------------
     cap = cv2.VideoCapture(args.fname)
@@ -68,10 +81,16 @@ if __name__ == "__main__":
             break
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         start = time.time()
+
+        if args.detect_lanes:
+            lane_img = detect_lanes(frame, mtx, dist, left_lane, right_lane, diag=False, display=False)
+
         result = detect_cars(frame, clf, scaler, args.orient, args.pix_per_cell, args.cell_per_block, tuple(args.spatial_size),
                              args.hist_bins, args.color_space, args.hog_channel, args.hog_feat, args.spatial_feat, args.hist_feat,
-                             args.heat_threshold, display=False)
+                             args.heat_threshold, display=False, method=args.method, lanes_img=lane_img if args.detect_lanes else None)
+
         fps = 1.0 / (time.time() - start)
+
         result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
 
         cv2.putText(result, "fps: %02.2f" % fps, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 120), 2)

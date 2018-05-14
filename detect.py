@@ -6,7 +6,7 @@ from scipy.ndimage.measurements import label
 
 import cv2
 from lesson_functions import (add_heat, apply_threshold, draw_boxes,
-                              draw_labeled_bboxes, find_cars)
+                              draw_labeled_bboxes, find_cars, search_windows, slide_window)
 
 # INTERESTING_WIN_PROP = [
 #     # (ystart, ystop, scale, step, color)
@@ -22,11 +22,23 @@ from lesson_functions import (add_heat, apply_threshold, draw_boxes,
 #     (400, 628, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 #     (464, 690, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 # ]
+# INTERESTING_WIN_PROP = [  # image dimensions 1280x720
+#     # (ystart, ystop, scale, step, color)
+#     (400, 656, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+
+#     (410, 475, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 520, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 550, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 660, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+# ]
+# INTERESTING_WIN_PROP = [
+    # #(416, 490, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    # (416, 570, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    # #(428, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    # #(458, 690, 3.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+# ]
 INTERESTING_WIN_PROP = [
-    # (ystart, ystop, scale, step, color)
-    (416, 480, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # (400, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # (400, 528, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (396, 660, 1.0, 4, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 
 ]
 
@@ -54,7 +66,7 @@ def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
 
 
 def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space,
-                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False):
+                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False, method='find_cars', lanes_img=None):
     """
     Performs multi-scale find_cars for given feature configurations
     """
@@ -62,20 +74,31 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
     boxes_img = rgb_image.copy()
     boxes = []
     i = 0
-    for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
+    if method.lower() == "find_cars":
+        for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
 
-        out_img, boxes_ = find_cars(rgb_image, ystart=ystart, ystop=ystop, scale=scale, svc=clf, X_scaler=scaler,
-                                    orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
-                                    spatial_size=spatial_size, hist_bins=hist_bins, color_space=color_space,
-                                    step=step, hog_feat=hog_feat, hog_channel=hog_channel, hist_feat=hist_feat, spatial_feat=spatial_feat)
+            _, boxes_ = find_cars(rgb_image, ystart=ystart, ystop=ystop, scale=scale, svc=clf, X_scaler=scaler,
+                                  orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
+                                  spatial_size=spatial_size, hist_bins=hist_bins, color_space=color_space,
+                                  step=step, hog_feat=hog_feat, hog_channel=hog_channel, hist_feat=hist_feat,
+                                  spatial_feat=spatial_feat)
 
-        boxes_img = draw_boxes(boxes_img, boxes_, color=color)
+            boxes_img = draw_boxes(boxes_img, boxes_, color=color)
 
-        # Add legends to boxes image
-        cv2.putText(boxes_img, str(scale), (50 * i, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
-        i += 1
+            # Add legends to boxes image
+            cv2.putText(boxes_img, str(scale), (50 * i, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+            i += 1
 
-        boxes += boxes_
+            boxes += boxes_
+    elif method.lower() == "search_windows":
+        windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[396, 598],
+                               xy_window=(96, 96), xy_overlap=(0.75, 0.75))
+
+        boxes = search_windows(rgb_image, windows, clf=clf, scaler=scaler, color_space=color_space, spatial_size=spatial_size, hist_bins=hist_bins,
+                               orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
+                               spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
+    else:
+        raise NotImplementedError("Provided method %s is not supported. Supported methods are ['find_cars', 'search_windows']" % (method))
 
     # Add heat to each box in box list
     heat = np.zeros_like(rgb_image[:, :, 0]).astype(np.float)
@@ -99,11 +122,22 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
         plt.imshow(boxes_img)
         return draw_img
     else:
-        rw = width // 2
-        rh = height // 2
+        if lanes_img is not None:
+            rw = width // 3
+            rh = height // 3
+            rlanes_img = cv2.resize(lanes_img, (rw, rh))
+            draw_img = draw_labeled_bboxes(np.copy(lanes_img), labels)
+        else:
+            rw = width // 2
+            rh = height // 2
         rboxes = cv2.resize(boxes_img, (rw, rh))
         heatmap_img = cv2.applyColorMap(heatmap.astype(np.uint8) * 10, cv2.COLORMAP_HOT)
         rheat = cv2.resize(heatmap_img, (rw, rh))
-        stacked = np.vstack((rboxes, rheat))
+
+        if lanes_img is not None:
+            stacked = np.vstack((rboxes, rheat, rlanes_img))
+        else:
+            stacked = np.vstack((rboxes, rheat))
+
         result = np.hstack((draw_img, stacked))
         return result
