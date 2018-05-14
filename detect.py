@@ -7,45 +7,19 @@ from scipy.ndimage.measurements import label
 import cv2
 from lesson_functions import (add_heat, apply_threshold, draw_boxes,
                               draw_labeled_bboxes, find_cars, search_windows, slide_window)
+from collections import deque
 
+CAR_HEATMAP = deque(maxlen=3)
 
-# INTERESTING_WIN_PROP = [
-#     # (ystart, ystop, scale, step, color)
-#     (400, 464, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (416, 480, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-
-#     (400, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (432, 528, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-
-#     (400, 528, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (432, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-
-#     (400, 628, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (464, 690, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
-# ]
-# INTERESTING_WIN_PROP = [  # image dimensions 1280x720
-#     # (400, 656, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-
-#     (410, 475, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (410, 570, 1.5, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (410, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (410, 660, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
-# ]
-
+"""
+Optimal window configurations for find_cars
+"""
 INTERESTING_WIN_PROP = [
-    # (ystart, ystop, scale, step, color)
-    (396, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (406, 580, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (416, 650, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (426, 670, 3.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+    (396, 470, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (396, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (396, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (396, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 ]
-# INTERESTING_WIN_PROP = [
-#     (380, 656, 0.75, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (380, 656, 1.00, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (380, 656, 1.50, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (380, 656, 2.00, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
-# ]
-
 
 def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
     """
@@ -108,12 +82,17 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
         boxes, boxes_img = tfDetect.detect(rgb_image)
         heat_thresh = 0  # making heat threshold explicitly 0 for ssd
     else:
-        raise NotImplementedError("Provided method %s is not supported. Supported methods are ['find_cars', 'search_windows', 'ssd']" % (method))
+        raise NotImplementedError("Provided method %s is not supported. "
+                                  "Supported methods are ['find_cars', 'search_windows', 'ssd']" % (method))
 
     # Add heat to each box in box list
     heat = np.zeros_like(rgb_image[:, :, 0]).astype(np.float)
 
     heat = add_heat(heat, boxes)
+
+    # Adds all of the heatmaps for last 10 frames
+    CAR_HEATMAP.append(heat)
+    heat = np.sum(np.array(CAR_HEATMAP), axis=0)
 
     # Apply threshold to help remove false positives
     heat = apply_threshold(heat, heat_thresh)

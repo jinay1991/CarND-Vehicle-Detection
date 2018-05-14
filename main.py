@@ -87,7 +87,13 @@ if __name__ == "__main__":
 
     if args.save:
         writer = cv2.VideoWriter()
-        writer.open("result.mp4", fourcc, fps, (width, height), isColor=True)
+        if args.detect_vehicles and args.detect_lanes:
+            vid_width = width + (width // 3)
+        elif args.detect_vehicles:
+            vid_width = width + (width // 2)
+        else:
+            vid_width = width
+        writer.open("result.mp4", fourcc, fps, (vid_width, height), isColor=True)
         assert writer.isOpened(), "Failed to create result.mp4"
     else:
         writer = None
@@ -97,8 +103,8 @@ if __name__ == "__main__":
         if not ret:
             break
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        start = time.time()
 
+        start = time.time()
         if args.detect_lanes:
             result = detect_lanes(frame, mtx, dist, left_lane, right_lane, diag=False, display=False)
 
@@ -108,13 +114,17 @@ if __name__ == "__main__":
                                  args.heat_threshold, display=False, method=args.method, lanes_img=result if args.detect_lanes else None,
                                  tfDetect=tfDetect)
 
-        fps = 1.0 / (time.time() - start)
+        if not (args.detect_vehicles or args.detect_lanes):
+            result = frame.copy()
+        else:
+            fps = 1.0 / (time.time() - start)
 
         result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
 
         cv2.putText(result, "fps: %02.2f" % fps, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 120), 2)
         cv2.imshow("result", result)
-        if writer:
+
+        if args.save:
             writer.write(result)
 
         key = cv2.waitKey(30) if not isImage else cv2.waitKey(0)
@@ -122,7 +132,9 @@ if __name__ == "__main__":
             cv2.waitKey(0)
         elif key == 27:
             break
-    if writer:
+
+    if args.save:
         writer.release()
+
     cv2.destroyAllWindows()
     cap.release()
