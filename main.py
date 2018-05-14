@@ -93,8 +93,8 @@ if __name__ == "__main__":
             vid_width = width + (width // 2)
         else:
             vid_width = width
-        writer.open("result.mp4", fourcc, fps, (vid_width, height), isColor=True)
-        assert writer.isOpened(), "Failed to create result.mp4"
+        writer.open(os.path.splitext(args.fname)[0] + "_out.mp4", fourcc, fps, (vid_width, height), isColor=True)
+        assert writer.isOpened(), "Failed to create %s" % (os.path.splitext(args.fname)[0] + "_out.mp4")
     else:
         writer = None
 
@@ -125,7 +125,10 @@ if __name__ == "__main__":
         cv2.imshow("result", result)
 
         if args.save:
-            writer.write(result)
+            if writer:
+                writer.write(result)
+            elif isImage:
+                cv2.imwrite(os.path.splitext(args.fname)[0] + "_out.jpg", result)
 
         key = cv2.waitKey(30) if not isImage else cv2.waitKey(0)
         if key == 32:
