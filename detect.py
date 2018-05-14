@@ -8,6 +8,7 @@ import cv2
 from lesson_functions import (add_heat, apply_threshold, draw_boxes,
                               draw_labeled_bboxes, find_cars, search_windows, slide_window)
 
+
 # INTERESTING_WIN_PROP = [
 #     # (ystart, ystop, scale, step, color)
 #     (400, 464, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
@@ -23,24 +24,27 @@ from lesson_functions import (add_heat, apply_threshold, draw_boxes,
 #     (464, 690, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 # ]
 # INTERESTING_WIN_PROP = [  # image dimensions 1280x720
-#     # (ystart, ystop, scale, step, color)
-#     (400, 656, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     # (400, 656, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 
-#     (410, 475, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (410, 520, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (410, 550, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 475, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 570, 1.5, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (410, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 #     (410, 660, 3.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 # ]
-# INTERESTING_WIN_PROP = [
-    # #(416, 490, 1.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # (416, 570, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # #(428, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # #(458, 690, 3.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
-# ]
-INTERESTING_WIN_PROP = [
-    (396, 660, 1.0, 4, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 
+INTERESTING_WIN_PROP = [
+    # (ystart, ystop, scale, step, color)
+    (396, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (406, 580, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (416, 650, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (426, 670, 3.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 ]
+# INTERESTING_WIN_PROP = [
+#     (380, 656, 0.75, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (380, 656, 1.00, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (380, 656, 1.50, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (380, 656, 2.00, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+# ]
 
 
 def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
@@ -66,7 +70,7 @@ def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
 
 
 def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space,
-                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False, method='find_cars', lanes_img=None):
+                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False, method='find_cars', lanes_img=None, tfDetect=None):
     """
     Performs multi-scale find_cars for given feature configurations
     """
@@ -90,6 +94,7 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
             i += 1
 
             boxes += boxes_
+
     elif method.lower() == "search_windows":
         windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[396, 598],
                                xy_window=(96, 96), xy_overlap=(0.75, 0.75))
@@ -97,8 +102,13 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
         boxes = search_windows(rgb_image, windows, clf=clf, scaler=scaler, color_space=color_space, spatial_size=spatial_size, hist_bins=hist_bins,
                                orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
                                spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
+        boxes_img = draw_boxes(boxes_img, boxes, color=(255, 0, 100))
+
+    elif method.lower() == "ssd" and tfDetect is not None:
+        boxes, boxes_img = tfDetect.detect(rgb_image)
+        heat_thresh = 0  # making heat threshold explicitly 0 for ssd
     else:
-        raise NotImplementedError("Provided method %s is not supported. Supported methods are ['find_cars', 'search_windows']" % (method))
+        raise NotImplementedError("Provided method %s is not supported. Supported methods are ['find_cars', 'search_windows', 'ssd']" % (method))
 
     # Add heat to each box in box list
     heat = np.zeros_like(rgb_image[:, :, 0]).astype(np.float)
