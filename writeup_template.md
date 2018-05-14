@@ -23,11 +23,14 @@ The goals / steps of this project are the following:
 [image51]: ./output_images/test2_out.jpg
 [image52]: ./output_images/test3_out.jpg
 [image53]: ./output_images/test4_out.jpg
-
+[image54]: ./output_images/test5_out.jpg
+[image55]: ./output_images/test6_out.jpg
 [image05]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./output_images/test6_out.jpg
 [image07]: ./examples/output_bboxes.png
+[image8]: ./output_images/test1_lanes_out.jpg
+[image9]: ./output_images/test1_dnn_out.jpg
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -203,6 +206,8 @@ Here's an example result showing the heatmap from a series of frames of video, t
 ![alt text][image51]
 ![alt text][image52]
 ![alt text][image53]
+![alt text][image54]
+![alt text][image55]
 
 Heatmaps for each of the test image can be seen in above images (center image of right column)
 
@@ -242,7 +247,7 @@ Here, I have integrated Lane detection pipeline with Vehicle Detection pipeline 
 
 Here's a [link to my video result](./project_video_out.mp4)
 
-Couple of example frame where Lane Lines and Vehicle Detection Pipeline working together.
+Example frame where Lane Lines and Vehicle Detection Pipeline working together.
 
 ![alt text][image8]
 
@@ -254,7 +259,8 @@ Although with Deep Learning Models such as `YOLO (You Only Look Once)` and `SSD 
 
 Code for performing infernce with TensorFlow(TM) APIs is in `dnn.py`, which can be run with `--method 'ssd'` in the command argument of `main.py`
 
+Here's a [link to my video result based on dnn model](./project_video_dnn_out.mp4)
 
-Couple of example frame of detection pipeline using `SSD MobileNetv2` model.
+Example frame of detection pipeline using `SSD MobileNetv2` model.
 
 ![alt text][image9]
