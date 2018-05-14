@@ -85,7 +85,7 @@ if __name__ == "__main__":
     if args.detect_vehicles:
         tfDetect = TFDetect() if args.method == 'ssd' else None
 
-    if args.save:
+    if args.save and not isImage:
         writer = cv2.VideoWriter()
         if args.detect_vehicles and args.detect_lanes:
             vid_width = width + (width // 3)
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         elif key == 27:
             break
 
-    if args.save:
+    if writer:
         writer.release()
 
     cv2.destroyAllWindows()

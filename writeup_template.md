@@ -19,9 +19,15 @@ The goals / steps of this project are the following:
 [image2]: ./examples/HOG_example.jpg
 [image3]: ./examples/sliding_windows.jpg
 [image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
+[image50]: ./output_images/test1_out.jpg
+[image51]: ./output_images/test2_out.jpg
+[image52]: ./output_images/test3_out.jpg
+[image53]: ./output_images/test4_out.jpg
+
+[image05]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
+[image7]: ./output_images/test6_out.jpg
+[image07]: ./examples/output_bboxes.png
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -174,18 +180,38 @@ Here's a [link to my video result](./project_video_out.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.
+I used `search_windows` method for generating project result video. Although `find_cars` works just fine with existing code. For `find_cars` I have chosen `4` scales to support multi-scale sub-sampling and their respective step size as given below
+
+| ystart | ystop | scale | step |
+|--------|:-----:|:-----:|:----:|
+|  396   |  470  |  1.0  |   1  |
+|  396   |  496  |  1.5  |   2  |
+|  396   |  570  |  2.0  |   2  |
+|  396   |  620  |  2.5  |   2  |
+
+I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.
+
+I have used `deque` for storing past `3` heat signatures for detected vehicles, which I average over frames to get vehicle detection stable.
+
+I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.
 
 Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
 
 ### Here are six frames and their corresponding heatmaps:
 
-![alt text][image5]
+![alt text][image50]
+![alt text][image51]
+![alt text][image52]
+![alt text][image53]
+
+Heatmaps for each of the test image can be seen in above images (center image of right column)
 
 ### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
+
 ![alt text][image6]
 
 ### Here the resulting bounding boxes are drawn onto the last frame in the series:
+
 ![alt text][image7]
 
 ---
