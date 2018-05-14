@@ -220,6 +220,16 @@ Heatmaps for each of the test image can be seen in above images (center image of
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
+I have used two different approach during the project `find_cars` (performing `hog` feature extraction once and sub-sample the feature array to extract windows which contain vehicles) and `search_windows` (perform `hog` feature extraction for each window and extract windows which contain vehicles). Both of them have done decent job in identifying vehicles but there are few fall backs in the technique itself. They are -
+
+1. Processing Speed: As `hog` feature extraction is very costly operation and running it for all the windows is not prefered for performance and even with `find_cars` where this is being done only once, we need to have multi-scale objects to be detected hence to find cars at multi-scale we iterate through each scale for this which is time consuming and at same time computionally expensives. To overcome this, I would highly recommend Deep Learning as they out-performs this technique in both factors accuracy as well as speed. (see extra section below)
+
+2. Tracking Pipeline: I have used averaging heatmap over past 3 frames which helped me in reducing false positives but at the same time my latency for detecting new object dropped, which is not accepted in mosts of the cases as it may lead to hazardus situation in self-driven cars. To improve this I would like to try out something like Kalman Prediction techniques which allows me to track the detected object and detection pipeline gets slighly isolated from the tracking pipeline. (i.e. detection happens and later it gets tracked only. No detection for already detected object for certain period)
+
+3. Lane/Vehicle Detection: Lane detection pipeline seems to throttle down the performance. To improve this I would recommend to use existing approach to generate labeled masks for Deep Learning datasets and train Sematic Segmantation Model (Masked-RCNN) to produce mask for Lane region as well as Car and other objects.
+
+4. Distance objects: We can not detect distant objects with existing pipeline even though we add small scale, as they tend to produce false positives for Simple SVM classifier. We need to have strong classifier for detecting small objects such as LeNet.
+
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.
 
 ---
