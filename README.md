@@ -26,10 +26,8 @@ The goals / steps of this project are the following:
 [image53]: ./output_images/test4_out.jpg
 [image54]: ./output_images/test5_out.jpg
 [image55]: ./output_images/test6_out.jpg
-[image05]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./output_images/test6_out.jpg
-[image07]: ./examples/output_bboxes.png
 [image8]: ./output_images/test1_lanes_out.jpg
 [image9]: ./output_images/test1_dnn_out.jpg
 [video1]: ./project_video.mp4
