@@ -15,10 +15,15 @@ The goals / steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
+[image1]: ./output_images/car_notcar.png
+[image2]: ./output_images/HOG_example.png
+[image3]: ./output_images/test1_out.jpg
+[image4]: ./output_images/windows_combined.jpg
+[image40]: ./output_images/windows_44_0.5.jpg
+[image41]: ./output_images/windows_64_0.75.jpg
+[image42]: ./output_images/windows_96_0.75.jpg
+[image43]: ./output_images/windows_128_0.5.jpg
+[image44]: ./output_images/windows_160_0.5.jpg
 [image50]: ./output_images/test1_out.jpg
 [image51]: ./output_images/test2_out.jpg
 [image52]: ./output_images/test3_out.jpg
@@ -133,20 +138,20 @@ Apart from HOG Features I have also used `color features` information with follo
 
 I trained a linear SVM using `sklearn.svm.LinearSVC` with default arguments. Code for this is in `classifier.py` written as function `train()`.
 
-To train a classifier I have used HOG features along with color features (`spatial_feature` and `hist_feature`) containing feature vector of size `8560`. I have tried reducing further by setting `pix_per_cell = 16` but results were not favorable and lot of false positives for `svm` hence kept most optimal setting for training.
+To train a classifier I have used HOG features along with color features (`spatial_feature` and `hist_feature`) containing feature vector of size `8460`. I have tried reducing further by setting `pix_per_cell = 16` but results were not favorable and lot of false positives for `svm` hence kept most optimal setting for training.
 
-Training SVM took `35.77 seconds` for training `35520` images (with augmented dataset) which gave test accuracy of `99.17%`.
+Training SVM took `35.55 seconds` for training `35520` images (with augmented dataset) which gave test accuracy of `99.17%`.
 
     car images: 8792, notcar images: 8968
     Using: 9 orientations 8 pixels per cell 2 cells per block YCrCb color_space (32, 32) spatial_size 32 hist_bins and ALL hog_channel True augment for features extract
-    35520 image 35520 labels
+    35520 images 35520 labels
     Feature vector length: 8460
-    35.77 Seconds to train SVC...
+    35.55 Seconds to train SVC...
     Test Accuracy of SVC =  0.9917
     Predictions: [0. 1. 1. 1. 0. 0. 0. 1. 1. 0.]
         Labels: [0. 1. 1. 1. 0. 0. 0. 1. 1. 0.]
 
-    0.001 seconds to predict 10 labels with SVC.
+    0.00097 seconds to predict 10 labels with SVC.
 
 ### Sliding Window Search
 
@@ -163,6 +168,21 @@ I used `slide_window` function from lesson (code at line `103` to `145` in `less
 
 I have implemented these in my pipeline which is at line `72` to `80` in `detect.py` within function `detect_cars`.
 
+Later, I have applied `search_windows` for following scales to improve accuracy of detections
+
+| ystart | ystop | scale | step |
+|--------|:-----:|:-----:|:----:|
+|  400   |  457  |  0.7  |  2   |
+|  400   |  480  |  1.0  |  3   |
+|  410   |  520  |  1.5  |  3   |
+|  415   |  560  |  2.0  |  2   |
+|  430   |  620  |  2.5  |  2   |
+
+where,
+
+    xy_window = (64 * scale)
+    xy_overlap = (0.25 * step)
+
 *Note that, `detect_cars()` performs various methods for obtaining car bounding boxes such as `find_cars`, `ssd` (Single Shot Detection) or `search_windows`. To run with any of the algorithm use `--method` argument of `main.py`.*
 
 ![alt text][image3]
@@ -171,6 +191,11 @@ I have implemented these in my pipeline which is at line `72` to `80` in `detect
 
 Ultimately I searched on twp scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result. Here are some example images:
 
+![alt text][image40]
+![alt text][image41]
+![alt text][image42]
+![alt text][image43]
+![alt text][image44]
 ![alt text][image4]
 ---
 
@@ -183,18 +208,19 @@ Here's a [link to my video result](./project_video_out.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I used `search_windows` method for generating project result video. Although `find_cars` works just fine with existing code. For `find_cars` I have chosen `4` scales to support multi-scale sub-sampling and their respective step size as given below
+I used `search_windows` method for generating project result video. Although `find_cars` works just fine with existing code. For `find_cars` I have chosen `5` scales to support multi-scale sub-sampling and their respective step size as given below
 
 | ystart | ystop | scale | step |
 |--------|:-----:|:-----:|:----:|
-|  396   |  470  |  1.0  |   1  |
-|  396   |  496  |  1.5  |   2  |
-|  396   |  570  |  2.0  |   2  |
-|  396   |  620  |  2.5  |   2  |
+|  400   |  457  |  0.7  |  2   |
+|  400   |  480  |  1.0  |  3   |
+|  410   |  520  |  1.5  |  3   |
+|  415   |  560  |  2.0  |  2   |
+|  430   |  620  |  2.5  |  2   |
 
 I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.
 
-I have used `deque` for storing past `3` heat signatures for detected vehicles, which I average over frames to get vehicle detection stable.
+I have used `deque` for storing past `5` heat signatures for detected vehicles, which I average over frames to get vehicle detection stable.
 
 I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.
 

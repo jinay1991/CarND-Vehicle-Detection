@@ -60,6 +60,7 @@ def draw_windows(rgb_image, save_winframe=True):
     Draws windows on image
     """
     windows_img = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+    bgr_img = windows_img.copy()
     for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
 
         windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[ystart, ystop],
@@ -67,7 +68,7 @@ def draw_windows(rgb_image, save_winframe=True):
 
         if save_winframe:
             windows_img = draw_boxes(windows_img, windows, color=color)
-            cv2.imwrite("output_images/windows_%s_%s.jpg" % (int(64 * scale), round(0.25 * step, 2)), draw_boxes(rgb_image, windows, color=color))
+            cv2.imwrite("output_images/windows_%s_%s.jpg" % (int(64 * scale), round(0.25 * step, 2)), draw_boxes(bgr_img, windows, color=color))
 
     if save_winframe:
         cv2.imwrite("output_images/windows_combined.jpg", windows_img)
