@@ -197,7 +197,9 @@ Ultimately I searched on twp scales using YCrCb 3-channel HOG features plus spat
 
 #### 1. Provide a link to your final video output. Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 
-Here's a [link to my video result](./project_video_out.mp4)
+Here's a [link to my video result](./project_video_out.mkv)
+
+Here's a [link to my Lane detection + Vehicle detection video result](./project_video_combined_out.mkv)
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
@@ -265,7 +267,7 @@ Here I'll talk about the approach I took, what techniques I used, what worked an
 
 Here, I have integrated Lane detection pipeline with Vehicle Detection pipeline to work alongside to have complete solution.
 
-Here's a [link to my video result](./project_video_out.mp4)
+Here's a [link to my video result](./project_video_combined_out.mkv)
 
 Example frame where Lane Lines and Vehicle Detection Pipeline working together.
 
@@ -279,7 +281,7 @@ Although with Deep Learning Models such as `YOLO (You Only Look Once)` and `SSD 
 
 Code for performing infernce with TensorFlow(TM) APIs is in `dnn.py`, which can be run with `--method 'ssd'` in the command argument of `main.py`
 
-Here's a [link to my video result based on dnn model](./project_video_dnn_out.mp4)
+Here's a [link to my video result based on dnn model](./project_video_dnn_out.mkv)
 
 Example frame of detection pipeline using `SSD MobileNetv2` model.
 
