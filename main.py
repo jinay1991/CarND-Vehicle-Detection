@@ -32,10 +32,10 @@ if __name__ == "__main__":
     parser.add_argument("--hist_feat", help="Histogram features on or off", action="store_false")
     parser.add_argument("--hog_feat", help="HOG features on or off", action="store_false")
     parser.add_argument("--heat_threshold", help="Heatmap threshold", default=1, type=int)
-    parser.add_argument("--method", help="algo ['find_cars', 'search_windows', 'ssd']", default='find_cars')
+    parser.add_argument("--method", help="algo ['find_cars', 'search_windows', 'dnn']", default='find_cars')
     parser.add_argument("--detect_vehicles", help="vehicle detection on or off", action="store_true")
     parser.add_argument("--detect_lanes", help="lane detection on or off", action="store_true")
-    parser.add_argument("--save", help="saves result as result.mp4", action="store_true")
+    parser.add_argument("--save", help="saves results, can take [0=none, 1=video/image, 2=windows]", default=0, type=int)
     parser.add_argument("--augment", help="augment dataset to generate more features", action="store_true")
     args = parser.parse_args()
 
@@ -83,9 +83,9 @@ if __name__ == "__main__":
 
     isImage = True if args.fname.endswith(".jpg") or args.fname.endswith(".png") else False
     if args.detect_vehicles:
-        tfDetect = TFDetect() if args.method == 'ssd' else None
+        tfDetect = TFDetect() if args.method == 'dnn' else None
 
-    if args.save and not isImage:
+    if args.save > 0 and not isImage:
         writer = cv2.VideoWriter()
         if args.detect_vehicles and args.detect_lanes:
             vid_width = width + (width // 3)
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             result = detect_cars(frame, clf, scaler, args.orient, args.pix_per_cell, args.cell_per_block, tuple(args.spatial_size),
                                  args.hist_bins, args.color_space, args.hog_channel, args.hog_feat, args.spatial_feat, args.hist_feat,
                                  args.heat_threshold, display=False, method=args.method, lanes_img=result if args.detect_lanes else None,
-                                 tfDetect=tfDetect)
+                                 tfDetect=tfDetect, save_winframe=args.save > 1)
 
         if not (args.detect_vehicles or args.detect_lanes):
             result = frame.copy()
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         cv2.putText(result, "fps: %02.2f" % fps, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 120), 2)
         cv2.imshow("result", result)
 
-        if args.save:
+        if args.save > 0:
             if writer:
                 writer.write(result)
             elif isImage:

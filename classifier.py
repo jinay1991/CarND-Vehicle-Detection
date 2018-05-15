@@ -56,7 +56,7 @@ def train(X, y, save=True):
     """
     Train LinearSVC classifier for given feature set
     """
-    print(len(X), "image", len(y), "labels")
+    print(len(X), "images", len(y), "labels")
     # Split up data into randomized training and test sets
     rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=rand_state)
@@ -69,12 +69,17 @@ def train(X, y, save=True):
 
     print('Feature vector length:', len(X_train[0]))
 
-    # Use a linear SVC
-    svc = LinearSVC()
+    # Note: To get even better classification results you might want to fine tune the C parameter of LinearSVC classifier
+    #       which controls between the training accuracy and generalization. As the test and training images came from the
+    #       same source, high test accuracy might imply overfitting. Against overfitting you need more generalization,
+    #       meaning C < 1.0 values. You can try 0.01 or even 0.0001.
+    svc = LinearSVC(C=0.01)
+
     # Check the training time for the SVC
     t1 = time.time()
     svc.fit(X_train, y_train)
     t2 = time.time()
+
     print(round(t2 - t1, 2), 'Seconds to train SVC...')
     # Check the score of the SVC
     print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))

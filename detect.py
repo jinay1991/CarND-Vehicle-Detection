@@ -9,17 +9,29 @@ from lesson_functions import (add_heat, apply_threshold, draw_boxes,
                               draw_labeled_bboxes, find_cars, search_windows, slide_window)
 from collections import deque
 
-CAR_HEATMAP = deque(maxlen=3)
+CAR_HEATMAP = deque(maxlen=5)
 
 """
 Optimal window configurations for find_cars
 """
 INTERESTING_WIN_PROP = [
-    (396, 470, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (396, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (396, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (396, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+    (400, 457, 0.7, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (410, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (415, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (430, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 ]
+
+# """
+# Optimal window configurations for find_cars
+# """
+# INTERESTING_WIN_PROP = [
+#     (396, 470, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (396, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (396, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+#     (396, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+# ]
+
 
 def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
     """
@@ -43,8 +55,32 @@ def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
 
 
+def draw_windows(rgb_image, save_winframe=True):
+    """
+    Draws windows on image
+    """
+    windows_img = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
+    for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
+
+        windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[ystart, ystop],
+                               xy_window=(int(64 * scale), int(64 * scale)), xy_overlap=(0.25 * step, 0.25 * step))
+
+        if save_winframe:
+            windows_img = draw_boxes(windows_img, windows, color=color)
+            cv2.imwrite("output_images/windows_%s_%s.jpg" % (int(64 * scale), round(0.25 * step, 2)), draw_boxes(rgb_image, windows, color=color))
+
+    if save_winframe:
+        cv2.imwrite("output_images/windows_combined.jpg", windows_img)
+
+    cv2.imshow("window_combined", windows_img)
+
+    windows_img = cv2.cvtColor(windows_img, cv2.COLOR_BGR2RGB)
+    return windows_img
+
+
 def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins, color_space,
-                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False, method='find_cars', lanes_img=None, tfDetect=None):
+                hog_channel, hog_feat, spatial_feat, hist_feat, heat_thresh=1, display=False, method='find_cars',
+                lanes_img=None, tfDetect=None, save_winframe=False):
     """
     Performs multi-scale find_cars for given feature configurations
     """
@@ -52,6 +88,10 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
     boxes_img = rgb_image.copy()
     boxes = []
     i = 0
+
+    if save_winframe:
+        draw_windows(rgb_image, save_winframe=save_winframe)
+
     if method.lower() == "find_cars":
         for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
 
@@ -70,20 +110,30 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
             boxes += boxes_
 
     elif method.lower() == "search_windows":
-        windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[396, 598],
-                               xy_window=(96, 96), xy_overlap=(0.75, 0.75))
+        for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
 
-        boxes = search_windows(rgb_image, windows, clf=clf, scaler=scaler, color_space=color_space, spatial_size=spatial_size, hist_bins=hist_bins,
-                               orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
-                               spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
-        boxes_img = draw_boxes(boxes_img, boxes, color=(255, 0, 100))
+            windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[ystart, ystop],
+                                   xy_window=(int(64 * scale), int(64 * scale)), xy_overlap=(0.25 * step, 0.25 * step))
 
-    elif method.lower() == "ssd" and tfDetect is not None:
+            boxes_ = search_windows(rgb_image, windows, clf=clf, scaler=scaler, color_space=color_space, spatial_size=spatial_size, hist_bins=hist_bins,
+                                    orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
+                                    spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
+
+            boxes_img = draw_boxes(boxes_img, boxes_, color=color)
+
+            # Add legends to boxes image
+            cv2.putText(boxes_img, str(scale), (50 * i, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+            i += 1
+
+            boxes += boxes_
+
+    elif method.lower() == "dnn" and tfDetect is not None:
         boxes, boxes_img = tfDetect.detect(rgb_image)
         heat_thresh = 0  # making heat threshold explicitly 0 for ssd
+
     else:
         raise NotImplementedError("Provided method %s is not supported. "
-                                  "Supported methods are ['find_cars', 'search_windows', 'ssd']" % (method))
+                                  "Supported methods are ['find_cars', 'search_windows', 'dnn']" % (method))
 
     # Add heat to each box in box list
     heat = np.zeros_like(rgb_image[:, :, 0]).astype(np.float)
