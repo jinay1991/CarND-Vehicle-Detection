@@ -30,10 +30,9 @@ Optimal window configurations for search_windows
 """
 SEARCH_WIN_PROP = [
     # xstart, xstop, ystart, ystop, scale, step, color
-    (380, None, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    # (1151, None, 400, 580, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (256, None, 415, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (96, None, 415, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (380, 1100, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (240, None, 396, 510, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (120, None, 380, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 ]
 
 
@@ -94,6 +93,7 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
     boxes_img = rgb_image.copy()
     boxes = []
     i = 0
+
 
     if save_winframe:
         draw_windows(rgb_image, save_winframe=save_winframe, method=method)
@@ -177,6 +177,7 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
             rh = height // 2
         rboxes = cv2.resize(boxes_img, (rw, rh))
         heatmap_img = cv2.applyColorMap(heatmap.astype(np.uint8) * 10, cv2.COLORMAP_HOT)
+        # rwin_img = cv2.resize(win_img, (rw, rh))
         rheat = cv2.resize(heatmap_img, (rw, rh))
 
         if lanes_img is not None:

@@ -91,7 +91,7 @@ Refer below arguments to tune any parameters:
 
 *Example command lines:*
 
-    $ python .\main.py --fname .\trim1.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --save 1 --train
+    $ python main.py --fname project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --save 1 --train
 
 ### Histogram of Oriented Gradients (HOG)
 
@@ -108,8 +108,6 @@ I then explored different color spaces and different `skimage.hog()` parameters 
 Here is an example using the `YUV` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
 
 ![alt text][image2]
-
-With this, while training classifier I found that adding more training data could help eliminating false positives for car detection hence I flipped the original images of dataset with `cv2.flip` and added features to respective class. This helped in improving classifier accuracy.
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -147,7 +145,7 @@ Training SVM took `10.15 seconds` for training `17760` images (without augmented
 
 ##### Command Line
 
-    $ python .\main.py --fname .\trim1.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --train
+    $ python .\main.py --fname .\project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --train
 
 ### Sliding Window Search
 
@@ -166,33 +164,37 @@ I have implemented these in my pipeline which is at line `72` to `80` in `detect
 
 Later, I have applied `search_windows` for following scales to improve accuracy of detections
 
-| ystart | ystop | scale | step |
-|--------|:-----:|:-----:|:----:|
-|  400   |  480  |  1.0  | 3.0  |
-|  410   |  520  |  1.5  | 3.0  |
-|  415   |  620  |  2.0  | 2.8  |
+| xstart | xstop | ystart | ystop | scale | step |
+|:-------|:-----:|:-------|:-----:|:-----:|:----:|
+|  380   | 1100  |  400   |  480  |  1.0  |   3  |
+|  240   | None  |  396   |  510  |  1.5  |   3  |
+|  120   | None  |  380   |  620  |  2.0  |   2  |
 
 where,
 
     xy_window = (64 * scale)
     xy_overlap = (0.25 * step)
 
+(Note that None means it's max/min limit of image.)
+
+Here, I have assumed for the `project_video.mp4` and `test_video.mp4` that Car will be always in left most lane and hence all the ongoing traffic cars will come from right side only hence to improve speed of pipeline I have reduced X direction of each scale windows.
+
 *Note that, `detect_cars()` performs various methods for obtaining car bounding boxes such as `find_cars`, `ssd` (Single Shot Detection) or `search_windows`. To run with any of the algorithm use `--method` argument of `main.py`.*
 
-![alt text][image3]
+![alt text][image4]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on twp scales using YUV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result. Here are some example images:
-I have applied following window scales for detecting vehicle at multiple scales,
+Ultimately I searched on 3 scales using YUV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result. Here are some example images:
 
-![alt text][image41]
-![alt text][image42]
-![alt text][image43]
 
-Combined image with all the scaled windows
+![alt text][image50]
+![alt text][image52]
 
-![alt text][image4]
+
+Here, I have assumed for the `project_video.mp4` and `test_video.mp4` that Car will be always in left most lane and hence all the ongoing traffic cars will come from right side only hence to improve speed of pipeline I have reduced X direction of each scale windows.
+
+Also, for reduction of the false positives from the video, I have used `decision_function` from the `LinearSVC()`, which gave `confidence` score for the prediction, and based on experiments I have thresholded all the prediction results with `0.35` (i.e. `35%`) to remove false positives. Code for this is at line `12`, `233-235` in `lesson_functions.py`.
 
 ---
 
@@ -214,11 +216,11 @@ I used `search_windows` method for generating project result video. Although `fi
 
 For `search_windows` approach, following are the window properties and scale used
 
-| ystart | ystop | scale | step |
-|--------|:-----:|:-----:|:----:|
-|  400   |  480  |  1.0  | 3.0  |
-|  410   |  520  |  1.5  | 3.0  |
-|  415   |  620  |  2.0  | 2.8  |
+| xstart | xstop | ystart | ystop | scale | step |
+|:-------|:-----:|:-------|:-----:|:-----:|:----:|
+|  380   | 1100  |  400   |  480  |  1.0  |   3  |
+|  240   | None  |  396   |  510  |  1.5  |   3  |
+|  120   | None  |  380   |  620  |  2.0  |   2  |
 
 where,
 
@@ -227,13 +229,15 @@ where,
 
 For `find_cars` approach, following are the window properties and scale used
 
-| ystart | ystop | scale | step |
-|--------|:-----:|:-----:|:----:|
-|  400   |  457  |  0.7  |  2   |
-|  400   |  480  |  1.0  |  3   |
-|  410   |  520  |  1.5  |  3   |
-|  415   |  560  |  2.0  |  2   |
-|  430   |  620  |  2.5  |  2   |
+| xstart | xstop | ystart | ystop | scale | step |
+|:-------|:-----:|:-------|:-----:|:-----:|:----:|
+|  380   | 1100  |  400   |  457  |  0.7  |  2   |
+|  240   | None  |  400   |  480  |  1.0  |  3   |
+|  120   | None  |  410   |  520  |  1.5  |  3   |
+|  None  | None  |  415   |  560  |  2.0  |  2   |
+|  None  | None  |  430   |  620  |  2.5  |  2   |
+
+(Note that None means it's max/min limit of image.)
 
 I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.
 
