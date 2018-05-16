@@ -1,36 +1,39 @@
 # -*- coding: utf-8 -*-
 
+from collections import deque
+
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.ndimage.measurements import label
 
 import cv2
 from lesson_functions import (add_heat, apply_threshold, draw_boxes,
-                              draw_labeled_bboxes, find_cars, search_windows, slide_window)
-from collections import deque
+                              draw_labeled_bboxes, find_cars, search_windows,
+                              slide_window)
 
 CAR_HEATMAP = deque(maxlen=5)
 
 """
 Optimal window configurations for find_cars
 """
-INTERESTING_WIN_PROP = [
-    (400, 457, 0.7, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (410, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (415, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (430, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+FIND_CARS_WIN_PROP = [
+    # xstart, xstop, ystart, ystop, scale, step, colorca
+    (0, 1280, 400, 457, 0.7, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (0, 1280, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (0, 1280, 410, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (0, 1280, 415, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (0, 1280, 430, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 ]
 
-# """
-# Optimal window configurations for find_cars
-# """
-# INTERESTING_WIN_PROP = [
-#     (396, 470, 1.0, 1, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (396, 496, 1.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (396, 570, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-#     (396, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
-# ]
+"""
+Optimal window configurations for search_windows
+"""
+SEARCH_WIN_PROP = [
+    # xstart, xstop, ystart, ystop, scale, step, color
+    (  0, 1280, 400, 480, 1.0, 3.0, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (  0, 1280, 410, 520, 1.5, 3.0, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (  0, 1280, 415, 620, 2.0, 2.8, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+]
 
 
 def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
@@ -55,20 +58,21 @@ def showImages(images, cols=4, rows=5, figsize=(15, 10), cmaps=None):
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
 
 
-def draw_windows(rgb_image, save_winframe=True):
+def draw_windows(rgb_image, save_winframe=True, method="find_cars"):
     """
     Draws windows on image
     """
     windows_img = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
     bgr_img = windows_img.copy()
-    for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
+    for xstart, xstop, ystart, ystop, scale, step, color in FIND_CARS_WIN_PROP if method == "find_cars" else SEARCH_WIN_PROP:
 
-        windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[ystart, ystop],
+        windows = slide_window(rgb_image, x_start_stop=[xstart, xstop], y_start_stop=[ystart, ystop],
                                xy_window=(int(64 * scale), int(64 * scale)), xy_overlap=(0.25 * step, 0.25 * step))
 
         if save_winframe:
             windows_img = draw_boxes(windows_img, windows, color=color)
-            cv2.imwrite("output_images/windows_%s_%s.jpg" % (int(64 * scale), round(0.25 * step, 2)), draw_boxes(bgr_img, windows, color=color))
+            cv2.imwrite("output_images/windows_%s_%s.jpg" %
+                        (int(64 * scale), round(0.25 * step, 2)), draw_boxes(bgr_img, windows, color=color))
 
     if save_winframe:
         cv2.imwrite("output_images/windows_combined.jpg", windows_img)
@@ -91,10 +95,10 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
     i = 0
 
     if save_winframe:
-        draw_windows(rgb_image, save_winframe=save_winframe)
+        draw_windows(rgb_image, save_winframe=save_winframe, method=method)
 
     if method.lower() == "find_cars":
-        for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
+        for xstart, xstop, ystart, ystop, scale, step, color in FIND_CARS_WIN_PROP:
 
             _, boxes_ = find_cars(rgb_image, ystart=ystart, ystop=ystop, scale=scale, svc=clf, X_scaler=scaler,
                                   orient=orient, pix_per_cell=pix_per_cell, cell_per_block=cell_per_block,
@@ -111,9 +115,9 @@ def detect_cars(rgb_image, clf, scaler, orient, pix_per_cell, cell_per_block, sp
             boxes += boxes_
 
     elif method.lower() == "search_windows":
-        for ystart, ystop, scale, step, color in INTERESTING_WIN_PROP:
+        for xstart, xstop, ystart, ystop, scale, step, color in SEARCH_WIN_PROP:
 
-            windows = slide_window(rgb_image, x_start_stop=[None, None], y_start_stop=[ystart, ystop],
+            windows = slide_window(rgb_image, x_start_stop=[xstart, xstop], y_start_stop=[ystart, ystop],
                                    xy_window=(int(64 * scale), int(64 * scale)), xy_overlap=(0.25 * step, 0.25 * step))
 
             boxes_ = search_windows(rgb_image, windows, clf=clf, scaler=scaler, color_space=color_space, spatial_size=spatial_size, hist_bins=hist_bins,
