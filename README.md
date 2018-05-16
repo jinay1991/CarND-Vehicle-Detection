@@ -115,9 +115,9 @@ With this, while training classifier I found that adding more training data coul
 
 I tried various combinations of parameters and here I mainly focused on accuracy with speed. Hence, fall for following combination of HOG Parameters most suited for me.
 
-    color_space = `YCrCb`
-    orient = 9
-    pix_per_cell = 8
+    color_space = `YUV`
+    orient = 11
+    pix_per_cell = 16
     cell_per_block = 2
     hog_channel = 'ALL'
 
@@ -130,20 +130,24 @@ Apart from HOG Features I have also used `color features` information with follo
 
 I trained a linear SVM using `sklearn.svm.LinearSVC` with default arguments. Code for this is in `classifier.py` written as function `train()`.
 
-To train a classifier I have used HOG features along with color features (`spatial_feature` and `hist_feature`) containing feature vector of size `8460`. I have tried reducing further by setting `pix_per_cell = 16` but results were not favorable and lot of false positives for `svm` hence kept most optimal setting for training.
+To train a classifier I have used HOG features along with color features (`spatial_feature` and `hist_feature`) containing feature vector of size `4356`.
 
-Training SVM took `35.55 seconds` for training `35520` images (with augmented dataset) which gave test accuracy of `99.17%`.
+Training SVM took `10.15 seconds` for training `17760` images (with augmented dataset) which gave test accuracy of `99.16%`.
 
     car images: 8792, notcar images: 8968
-    Using: 9 orientations 8 pixels per cell 2 cells per block YCrCb color_space (32, 32) spatial_size 32 hist_bins and ALL hog_channel True augment for features extract
-    35520 images 35520 labels
-    Feature vector length: 8460
-    35.55 Seconds to train SVC...
-    Test Accuracy of SVC =  0.9917
-    Predictions: [0. 1. 1. 1. 0. 0. 0. 1. 1. 0.]
-        Labels: [0. 1. 1. 1. 0. 0. 0. 1. 1. 0.]
+    Using: 11 orientations 16 pixels per cell 2 cells per block YUV color_space (32, 32) spatial_size 32 hist_bins and ALL hog_channel False augment for features extract
+    17760 images 17760 labels
+    Feature vector length: 4356
+    10.15 Seconds to train SVC...
+    Test Accuracy of SVC =  0.9916
+    Predictions: [1. 1. 1. 1. 0. 1. 1. 0. 1. 1.]
+        Labels: [1. 1. 1. 1. 0. 1. 1. 0. 1. 1.]
 
-    0.00097 seconds to predict 10 labels with SVC.
+    0.00147 seconds to predict 10 labels with SVC.
+
+##### Command Line
+
+    $ python .\main.py --fname .\trim1.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --train
 
 ### Sliding Window Search
 
@@ -164,11 +168,9 @@ Later, I have applied `search_windows` for following scales to improve accuracy 
 
 | ystart | ystop | scale | step |
 |--------|:-----:|:-----:|:----:|
-|  400   |  457  |  0.7  |  2   |
-|  400   |  480  |  1.0  |  3   |
-|  410   |  520  |  1.5  |  3   |
-|  415   |  560  |  2.0  |  2   |
-|  430   |  620  |  2.5  |  2   |
+|  400   |  480  |  1.0  | 3.0  |
+|  410   |  520  |  1.5  | 3.0  |
+|  415   |  620  |  2.0  | 2.8  |
 
 where,
 
@@ -200,7 +202,22 @@ Here's a [link to my Lane detection + Vehicle detection video result](./project_
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I used `search_windows` method for generating project result video. Although `find_cars` works just fine with existing code. For `find_cars` I have chosen `5` scales to support multi-scale sub-sampling and their respective step size as given below
+I used `search_windows` method for generating project result video. Although `find_cars` works just fine with existing code.
+
+For `search_windows` approach, following are the window properties and scale used
+
+| ystart | ystop | scale | step |
+|--------|:-----:|:-----:|:----:|
+|  400   |  480  |  1.0  | 3.0  |
+|  410   |  520  |  1.5  | 3.0  |
+|  415   |  620  |  2.0  | 2.8  |
+
+where,
+
+    xy_window = (64 * scale)
+    xy_overlap = (0.25 * step)
+
+For `find_cars` approach, following are the window properties and scale used
 
 | ystart | ystop | scale | step |
 |--------|:-----:|:-----:|:----:|
@@ -247,7 +264,7 @@ I have used two different approach during the project `find_cars` (performing `h
 
 1. Processing Speed: As `hog` feature extraction is very costly operation and running it for all the windows is not prefered for performance and even with `find_cars` where this is being done only once, we need to have multi-scale objects to be detected hence to find cars at multi-scale we iterate through each scale for this which is time consuming and at same time computionally expensives. To overcome this, I would highly recommend Deep Learning as they out-performs this technique in both factors accuracy as well as speed. (see extra section below)
 
-2. Tracking Pipeline: I have used averaging heatmap over past 3 frames which helped me in reducing false positives but at the same time my latency for detecting new object dropped, which is not accepted in mosts of the cases as it may lead to hazardus situation in self-driven cars. To improve this I would like to try out something like Kalman Prediction techniques which allows me to track the detected object and detection pipeline gets slighly isolated from the tracking pipeline. (i.e. detection happens and later it gets tracked only. No detection for already detected object for certain period)
+2. Tracking Pipeline: I have used averaging heatmap over past `5` frames which helped me in reducing false positives but at the same time my latency for detecting new object dropped, which is not accepted in mosts of the cases as it may lead to hazardus situation in self-driven cars. To improve this I would like to try out something like Kalman Prediction techniques which allows me to track the detected object and detection pipeline gets slighly isolated from the tracking pipeline. (i.e. detection happens and later it gets tracked only. No detection for already detected object for certain period)
 
 3. Lane/Vehicle Detection: Lane detection pipeline seems to throttle down the performance. To improve this I would recommend to use existing approach to generate labeled masks for Deep Learning datasets and train Sematic Segmantation Model (Masked-RCNN) to produce mask for Lane region as well as Car and other objects.
 
