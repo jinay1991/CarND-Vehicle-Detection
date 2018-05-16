@@ -30,7 +30,7 @@ Optimal window configurations for search_windows
 """
 SEARCH_WIN_PROP = [
     # xstart, xstop, ystart, ystop, scale, step, color
-    (380, 1100, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (380, None, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
     (240, None, 396, 510, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
     (120, None, 380, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 ]

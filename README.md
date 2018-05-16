@@ -26,7 +26,7 @@ The goals / steps of this project are the following:
 [image55]: ./output_images/test6_out.jpg
 [image6]: ./examples/labels_map.png
 [image7]: ./output_images/test6_out.jpg
-[image8]: ./output_images/test1_lanes_out.jpg
+[image8]: ./output_images/test4_lanes_out.jpg
 [image9]: ./output_images/test1_dnn_out.jpg
 [video1]: ./project_video.mp4
 
@@ -91,7 +91,7 @@ Refer below arguments to tune any parameters:
 
 *Example command lines:*
 
-    $ python main.py --fname project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --save 1 --train
+    $ python main.py --fname project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 3 --method 'search_windows' --detect_vehicles --save 1 --train
 
 ### Histogram of Oriented Gradients (HOG)
 
@@ -124,6 +124,8 @@ Apart from HOG Features I have also used `color features` information with follo
     spatial_size = (32, 32)
     hist_bins = 32
 
+Although, I also observed that `color_space = 'YCrCb'` works fine too.
+
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 I trained a linear SVM using `sklearn.svm.LinearSVC` with default arguments. Code for this is in `classifier.py` written as function `train()`.
@@ -145,7 +147,7 @@ Training SVM took `10.15 seconds` for training `17760` images (without augmented
 
 ##### Command Line
 
-    $ python .\main.py --fname .\project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --train
+    $ python .\main.py --fname .\project_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 3 --method 'search_windows' --detect_vehicles --train
 
 ### Sliding Window Search
 
@@ -166,7 +168,7 @@ Later, I have applied `search_windows` for following scales to improve accuracy 
 
 | xstart | xstop | ystart | ystop | scale | step |
 |:-------|:-----:|:-------|:-----:|:-----:|:----:|
-|  380   | 1100  |  400   |  480  |  1.0  |   3  |
+|  380   | None  |  400   |  480  |  1.0  |   3  |
 |  240   | None  |  396   |  510  |  1.5  |   3  |
 |  120   | None  |  380   |  620  |  2.0  |   2  |
 
@@ -176,6 +178,8 @@ where,
     xy_overlap = (0.25 * step)
 
 (Note that None means it's max/min limit of image.)
+
+In other words I have chosen (64, 64), (96, 96) and (128, 128) window scales for this.
 
 Here, I have assumed for the `project_video.mp4` and `test_video.mp4` that Car will be always in left most lane and hence all the ongoing traffic cars will come from right side only hence to improve speed of pipeline I have reduced X direction of each scale windows.
 
@@ -208,7 +212,7 @@ Here's a [link to my Lane detection + Vehicle detection video result](./project_
 
 ##### Command line
 
-    $ python main.py --fname test_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --save 1
+    $ python main.py --fname test_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 3 --method 'search_windows' --detect_vehicles --save 1
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
@@ -218,7 +222,7 @@ For `search_windows` approach, following are the window properties and scale use
 
 | xstart | xstop | ystart | ystop | scale | step |
 |:-------|:-----:|:-------|:-----:|:-----:|:----:|
-|  380   | 1100  |  400   |  480  |  1.0  |   3  |
+|  380   | None  |  400   |  480  |  1.0  |   3  |
 |  240   | None  |  396   |  510  |  1.5  |   3  |
 |  120   | None  |  380   |  620  |  2.0  |   2  |
 
@@ -300,7 +304,7 @@ Example frame where Lane Lines and Vehicle Detection Pipeline working together.
 
 #### 2. Discuss deep learning approach. How deep learning out-performs SVM results with real-time processing?
 
-In above section I have learned how object localization/detection can be done with `hog` + `svm` + `search_window` technique but this technique seems to have lot of fall backs in terms of speed and accuracy. As you can see in my result video, entire pipeline process at `~1-2fps` without any parallism which is far from the real-time, whereas self-driving car needs to detect object in real-time (`~15-20fps`).
+In above section I have learned how object localization/detection can be done with `hog` + `svm` + `search_window` technique but this technique seems to have lot of fall backs in terms of speed and accuracy. As you can see in my result video, entire pipeline process at `~1-2fps` without any parallism which is far from the real-time, whereas self-driving car needs to detect object in real-time (`~15-20fps`) on my Dell Machine (i7 + 32GB RAM + 4GB NVIDIA Quadro M1200 GPU).
 
 Although with Deep Learning Models such as `YOLO (You Only Look Once)` and `SSD (Single Shot Detection)` out-performs Object Detection tasks at speed of `~20fps` without batch. This are really decent figures for Self-Driving Cars to work. Hence I attempted to do inference with pretrained model of `SSD (MobileNet v2)` trained on `MSCOCO` dataset.
 
