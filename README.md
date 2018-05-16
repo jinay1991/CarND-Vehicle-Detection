@@ -17,7 +17,7 @@ The goals / steps of this project are the following:
 [image4]: ./output_images/windows_combined.jpg
 [image41]: ./output_images/windows_64_0.75.jpg
 [image42]: ./output_images/windows_96_0.75.jpg
-[image43]: ./output_images/windows_128_0.7.jpg
+[image43]: ./output_images/windows_128_0.5.jpg
 [image50]: ./output_images/test1_out.jpg
 [image51]: ./output_images/test2_out.jpg
 [image52]: ./output_images/test3_out.jpg
@@ -26,8 +26,8 @@ The goals / steps of this project are the following:
 [image55]: ./output_images/test6_out.jpg
 [image6]: ./examples/labels_map.png
 [image7]: ./output_images/test6_out.jpg
-[image8]: ./output_images/test4_lanes_out.jpg
-[image9]: ./output_images/test1_dnn_out.jpg
+[image8]: ./output_images/test4_lane_out.jpg
+[image9]: ./output_images/test4_dnn_out.jpg
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -304,7 +304,7 @@ Example frame where Lane Lines and Vehicle Detection Pipeline working together.
 
 #### 2. Discuss deep learning approach. How deep learning out-performs SVM results with real-time processing?
 
-In above section I have learned how object localization/detection can be done with `hog` + `svm` + `search_window` technique but this technique seems to have lot of fall backs in terms of speed and accuracy. As you can see in my result video, entire pipeline process at `~1-2fps` without any parallism which is far from the real-time, whereas self-driving car needs to detect object in real-time (`~15-20fps`) on my Dell Machine (i7 + 32GB RAM + 4GB NVIDIA Quadro M1200 GPU).
+In above section I have learned how object localization/detection can be done with `hog` + `svm` + `search_window` technique but this technique seems to have lot of fall backs in terms of speed and accuracy. As you can see in my result video, entire pipeline process at `~1-2fps` without any parallism which is far from the real-time, whereas self-driving car needs to detect object in real-time (`~15-20fps`) on my Intel i7.
 
 Although with Deep Learning Models such as `YOLO (You Only Look Once)` and `SSD (Single Shot Detection)` out-performs Object Detection tasks at speed of `~20fps` without batch. This are really decent figures for Self-Driving Cars to work. Hence I attempted to do inference with pretrained model of `SSD (MobileNet v2)` trained on `MSCOCO` dataset.
 
