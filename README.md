@@ -15,11 +15,9 @@ The goals / steps of this project are the following:
 [image2]: ./output_images/HOG_example.png
 [image3]: ./output_images/test1_out.jpg
 [image4]: ./output_images/windows_combined.jpg
-[image40]: ./output_images/windows_44_0.5.jpg
 [image41]: ./output_images/windows_64_0.75.jpg
 [image42]: ./output_images/windows_96_0.75.jpg
-[image43]: ./output_images/windows_128_0.5.jpg
-[image44]: ./output_images/windows_160_0.5.jpg
+[image43]: ./output_images/windows_128_0.7.jpg
 [image50]: ./output_images/test1_out.jpg
 [image51]: ./output_images/test2_out.jpg
 [image52]: ./output_images/test3_out.jpg
@@ -185,11 +183,9 @@ where,
 
 Ultimately I searched on twp scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result. Here are some example images:
 
-![alt text][image40]
 ![alt text][image41]
 ![alt text][image42]
 ![alt text][image43]
-![alt text][image44]
 ![alt text][image4]
 ---
 
