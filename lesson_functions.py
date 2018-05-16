@@ -9,6 +9,7 @@ from skimage.feature import hog
 
 import cv2
 
+DECISION_THRESH = 0.35
 
 def color_convert(img, color_space='RGB'):
     if color_space != 'RGB':
@@ -228,8 +229,9 @@ def search_windows(img, windows, clf, scaler, color_space='LUV', spatial_size=(3
                                        hog_channel=hog_channel, spatial_feat=spatial_feat,
                                        hist_feat=hist_feat, hog_feat=hog_feat)
         test_features = scaler.transform(np.array(features).reshape(1, -1))
+        confidence = clf.decision_function(test_features)
         prediction = clf.predict(test_features)
-        if prediction == 1:
+        if prediction == 1 and abs(confidence) > DECISION_THRESH:
             on_windows.append(window)
     return on_windows
 
@@ -253,16 +255,16 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
     ch3 = ctrans_tosearch[:, :, 2]
 
     # Define blocks and steps as above
-    nxblocks = (ch1.shape[1] // pix_per_cell) - cell_per_block + 1
-    nyblocks = (ch1.shape[0] // pix_per_cell) - cell_per_block + 1
+    nxblocks = (ch1.shape[1] // pix_per_cell) - 1 #cell_per_block + 1
+    nyblocks = (ch1.shape[0] // pix_per_cell) - 1 #cell_per_block + 1
     nfeat_per_block = orient*cell_per_block**2
 
     # 64 was the orginal sampling rate, with 8 cells and 8 pix per cell
     window = 64
-    nblocks_per_window = (window // pix_per_cell) - cell_per_block + 1
+    nblocks_per_window = (window // pix_per_cell) - 1 # cell_per_block + 1
     cells_per_step = int(step)  # Instead of overlap, define how many cells to step
-    nxsteps = (nxblocks - nblocks_per_window) // cells_per_step + 1
-    nysteps = (nyblocks - nblocks_per_window) // cells_per_step + 1
+    nxsteps = (nxblocks - nblocks_per_window) // cells_per_step #+ 1
+    nysteps = (nyblocks - nblocks_per_window) // cells_per_step #+ 1
 
     # Compute individual channel HOG features for the entire image
     hog1 = get_hog_features(ch1, orient, pix_per_cell, cell_per_block, feature_vec=False)
@@ -294,9 +296,10 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             # test_features = X_scaler.transform(np.hstack(tuple(features)).reshape(1, -1))
             test_features = X_scaler.transform(np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
             #test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))
+            test_confidence = svc.decision_function(test_features)
             test_prediction = svc.predict(test_features)
 
-            if test_prediction == 1:
+            if test_prediction == 1 and abs(test_confidence) > DECISION_THRESH:
                 xbox_left = np.int(xleft*scale)
                 ytop_draw = np.int(ytop*scale)
                 win_draw = np.int(window*scale)
@@ -320,7 +323,11 @@ def draw_labeled_bboxes(img, labels):
         # Define a bounding box based on min/max x and y
         bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
         # Draw the box on the image
-        cv2.rectangle(img, bbox[0], bbox[1], (0, 0, 255), 6)
+        cv2.rectangle(img, bbox[0], bbox[1], (0, 200, 155), 6)
+        x1, y1 = bbox[0]
+        (w, h), _ = cv2.getTextSize("car", cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+        cv2.rectangle(img, (x1 - 2, y1 - h - 2), (x1 + w + 2, y1), (0, 200, 155), -1, cv2.LINE_AA)
+        cv2.putText(img, "car", (x1 + 2, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
     # Return the image
     return img
 

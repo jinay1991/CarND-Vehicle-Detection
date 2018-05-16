@@ -132,7 +132,7 @@ I trained a linear SVM using `sklearn.svm.LinearSVC` with default arguments. Cod
 
 To train a classifier I have used HOG features along with color features (`spatial_feature` and `hist_feature`) containing feature vector of size `4356`.
 
-Training SVM took `10.15 seconds` for training `17760` images (with augmented dataset) which gave test accuracy of `99.16%`.
+Training SVM took `10.15 seconds` for training `17760` images (without augmented dataset) which gave test accuracy of `99.16%`.
 
     car images: 8792, notcar images: 8968
     Using: 11 orientations 16 pixels per cell 2 cells per block YUV color_space (32, 32) spatial_size 32 hist_bins and ALL hog_channel False augment for features extract
@@ -204,6 +204,9 @@ Here's a [link to my video result](./project_video_out.mkv)
 
 Here's a [link to my Lane detection + Vehicle detection video result](./project_video_combined_out.mkv)
 
+##### Command line
+
+    $ python main.py --fname test_video.mp4 --color_space 'YUV' --orient 11 --pix_per_cell 16 --cell_per_block 2 --spatial_size 32 32 --hist_bins 32 --hog_channel 'ALL' --heat_threshold 8 --method 'search_windows' --detect_vehicles --save 1
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 

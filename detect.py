@@ -18,11 +18,11 @@ Optimal window configurations for find_cars
 """
 FIND_CARS_WIN_PROP = [
     # xstart, xstop, ystart, ystop, scale, step, colorca
-    (0, 1280, 400, 457, 0.7, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (0, 1280, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (0, 1280, 410, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (0, 1280, 415, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (0, 1280, 430, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
+    (None, None, 400, 457, 0.7, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (None, None, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (None, None, 410, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (None, None, 415, 560, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (None, None, 430, 620, 2.5, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)))
 ]
 
 """
@@ -30,9 +30,10 @@ Optimal window configurations for search_windows
 """
 SEARCH_WIN_PROP = [
     # xstart, xstop, ystart, ystop, scale, step, color
-    (  0, 1280, 400, 480, 1.0, 3.0, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (  0, 1280, 410, 520, 1.5, 3.0, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
-    (  0, 1280, 415, 620, 2.0, 2.8, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (380, None, 400, 480, 1.0, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    # (1151, None, 400, 580, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (256, None, 415, 520, 1.5, 3, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
+    (96, None, 415, 620, 2.0, 2, (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))),
 ]
 
 

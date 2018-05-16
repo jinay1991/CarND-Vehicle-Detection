@@ -29,9 +29,9 @@ def features(dataset_dir, color_space, spatial_size, hist_bins, orient, pix_per_
 
     print("car images: %s, notcar images: %s" % (len(cars), len(notcars)))
 
-    print('Using:', orient, 'orientations', pix_per_cell, 'pixels per cell', cell_per_block, 'cells per block', color_space,
-          'color_space', spatial_size, 'spatial_size', hist_bins, 'hist_bins and', hog_channel, 'hog_channel', augment, 'augment for features extract')
-
+    print("Using features for training svm:\norient=", orient, "pix_per_cell=", pix_per_cell, "cell_per_block=", cell_per_block, "color_space=",
+          color_space, "spatial_size=", spatial_size, "hist_bins=", hist_bins, "hog_channel=", hog_channel, "augment=", augment)
+    t1 = time.time()
     car_features = extract_features(cars, color_space=color_space,
                                     spatial_size=spatial_size, hist_bins=hist_bins,
                                     orient=orient, pix_per_cell=pix_per_cell,
@@ -44,6 +44,8 @@ def features(dataset_dir, color_space, spatial_size, hist_bins, orient, pix_per_
                                        cell_per_block=cell_per_block,
                                        hog_channel=hog_channel, spatial_feat=spatial_feat,
                                        hist_feat=hist_feat, hog_feat=hog_feat, augment=augment)
+    t2 = time.time()
+    print('%s Seconds to collect features for dataset of [%s cars and %s notcars]...' % (round(t2 - t1, 2), len(cars), len(notcars)))
     # Create an array stack of feature vectors
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
 
@@ -73,7 +75,7 @@ def train(X, y, save=True):
     #       which controls between the training accuracy and generalization. As the test and training images came from the
     #       same source, high test accuracy might imply overfitting. Against overfitting you need more generalization,
     #       meaning C < 1.0 values. You can try 0.01 or even 0.0001.
-    svc = LinearSVC(C=0.01)
+    svc = LinearSVC(C=0.0001)
 
     # Check the training time for the SVC
     t1 = time.time()

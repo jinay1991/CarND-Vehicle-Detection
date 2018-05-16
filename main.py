@@ -97,11 +97,18 @@ if __name__ == "__main__":
         assert writer.isOpened(), "Failed to create %s" % (os.path.splitext(args.fname)[0] + "_out.mp4")
     else:
         writer = None
-
+    hh = 0
+    ss = 0
+    mm = 0
+    ms = 0
     for idx in range(totalFrames):
+
+        timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
+
         ret, frame = cap.read()
         if not ret:
             break
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         start = time.time()
@@ -121,7 +128,8 @@ if __name__ == "__main__":
 
         result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
 
-        cv2.putText(result, "fps: %02.2f" % fps, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 120), 2)
+        cv2.putText(result, "FPS: %02.2f" % fps, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 120), 2)
+
         cv2.imshow("result", result)
 
         if args.save > 0:
