@@ -95,7 +95,7 @@ class TFDetect(object):
         for i in range(boxes.shape[0]):
             classid = classes[i] - 1
 
-            if scores[i] > 0.3:
+            if scores[i] > 0.35:
                 ymin, xmin, ymax, xmax = boxes[i]
 
                 x1 = int(xmin * width)
